@@ -35,6 +35,15 @@ function M.run(opts)
 		return
 	end
 
+	if opts.bang then
+		if vim.env.TMUX then
+			vim.fn.system("tmux neww '" .. cmd .. "'") -- TODO: check for failure
+		else
+			vim.cmd("aboveleft terminal " .. cmd)
+		end
+		return
+	end
+
 	local output_buf = vim.api.nvim_create_buf(false, true)
 	vim.cmd("belowright 10split")
 	vim.api.nvim_win_set_buf(0, output_buf)

@@ -7,6 +7,7 @@ vim.api.nvim_create_user_command("X", function(opts)
 	require("exec").run(opts)
 end, {
 	nargs = "*",
+	bang = true,
 	complete = function()
 		return { "make", "other_subcmd" }
 	end,
