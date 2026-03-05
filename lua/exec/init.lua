@@ -11,9 +11,8 @@ local function sanitize_input(opts)
 	local input = table.concat(opts.fargs, " ")
 	input = input:gsub("^%s+", ""):gsub("%s+$", "")
 
-	local dangerous_patterns = {
-		{ pattern = "[;&|]+", desc = "command chaining" },
-		{ pattern = "[><]", desc = "file redirection" },
+	local dangerous_patterns = { -- TODO: single/double quotes not in pairs
+		{ pattern = "-rf", desc = "destructive behaviour" },
 	}
 	for _, check in ipairs(dangerous_patterns) do
 		if input:match(check.pattern) then
@@ -37,7 +36,11 @@ function M.run(opts)
 
 	if opts.bang then
 		if vim.env.TMUX then
-			vim.fn.system("tmux neww '" .. cmd .. "'") -- TODO: check for failure
+			local message = [[; printf "\033[1m--- Press ENTER to continue ---\033[0m\n"; read -r]]
+			vim.fn.system({ "tmux", "neww", string.format("$SHELL -c '%s%s'", cmd, message) })
+			if vim.v.shell_error ~= 0 then
+				print("Failed to execute command in tmux")
+			end
 		else
 			vim.cmd("aboveleft terminal " .. cmd)
 		end
