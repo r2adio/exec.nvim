@@ -36,11 +36,22 @@ function M.run(opts)
 
 	if opts.bang then
 		if vim.env.TMUX then
-			local message = [[; printf "\033[1m--- Press ENTER to continue ---\033[0m\n"; read -r]]
-			vim.fn.system({ "tmux", "neww", string.format("$SHELL -c '%s%s'", cmd, message) })
-			if vim.v.shell_error ~= 0 then
-				print("Failed to execute command in tmux")
+			local message =
+				[[; ec=$?; printf "\n(exit code: %d)\n" "$ec"; printf "\033[1m--- Press ENTER to continue ---\033[0m\n"; read -r]]
+			if not cmd or cmd == "" then -- shouldnt happen due to earlier checks, but just in case
+				print("No command provided to execute in tmux")
+				return
 			end
+			local program_name = cmd:match("^%s*(%S+)") -- ignore leading whitespace
+			vim.system({
+				"tmux",
+				"neww",
+				"-n",
+				program_name,
+				os.getenv("SHELL"),
+				"-c",
+				cmd .. message,
+			})
 		else
 			vim.cmd("aboveleft terminal " .. cmd)
 		end
@@ -64,7 +75,9 @@ function M.run(opts)
 				vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, data)
 			end
 		end,
-		on_exit = function() end,
+		on_exit = function(job_id, code, event)
+			vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, { string.format("[Process exited %d]", code) })
+		end,
 	})
 	if job_id <= 0 then
 		print("Failed to start command: " .. cmd)
