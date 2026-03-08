@@ -36,8 +36,7 @@ function M.run(opts)
 
 	if opts.bang then
 		if vim.env.TMUX then
-			local message =
-				[[; ec=$?; printf "\n(exit code: %d)\n" "$ec"; printf "\033[1m--- Press ENTER to continue ---\033[0m\n"; read -r]]
+			local message = [[; ec=$?; printf "\n[Process exited: %d]\n" "$ec"; read -r]]
 			if not cmd or cmd == "" then -- shouldnt happen due to earlier checks, but just in case
 				print("No command provided to execute in tmux")
 				return
@@ -53,29 +52,48 @@ function M.run(opts)
 				cmd .. message,
 			})
 		else
-			vim.cmd("aboveleft terminal " .. cmd)
+			vim.fn.jobstart(cmd, { term = true })
+			vim.cmd("startinsert")
 		end
 		return
 	end
 
 	local output_buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_set_option_value("buftype", "nofile", { scope = "local", buf = output_buf })
+	vim.api.nvim_set_option_value("bufhidden", "wipe", { scope = "local", buf = output_buf })
+	vim.api.nvim_set_option_value("swapfile", false, { scope = "local", buf = output_buf })
+
 	vim.cmd("belowright 10split")
 	vim.api.nvim_win_set_buf(0, output_buf)
 
-	local job_id = vim.fn.jobstart(cmd, {
+	local function append(buf, data)
+		if not data then
+			return
+		end
+		-- skip empty lines to avoid buffer clutter
+		local filtered = {}
+		for _, line in ipairs(data) do
+			if line ~= "" then
+				table.insert(filtered, line)
+			end
+		end
+		if #filtered > 0 then
+			vim.api.nvim_buf_set_lines(buf, -1, -1, false, filtered)
+			-- scroll to bottom
+			vim.api.nvim_win_set_cursor(0, { vim.api.nvim_buf_line_count(buf), 0 })
+		end
+	end
+
+	local job_id = vim.fn.jobstart({ vim.o.shell, "-c", cmd }, {
 		stdout_buffered = false,
 		stderr_buffered = false,
 		on_stdout = function(_, data)
-			if data then
-				vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, data)
-			end
+			append(output_buf, data)
 		end,
 		on_stderr = function(_, data)
-			if data then
-				vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, data)
-			end
+			append(output_buf, data)
 		end,
-		on_exit = function(job_id, code, event)
+		on_exit = function(_, code)
 			vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, { string.format("[Process exited %d]", code) })
 		end,
 	})
