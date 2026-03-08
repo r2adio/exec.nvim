@@ -67,7 +67,7 @@ function M.run(opts)
 	vim.api.nvim_win_set_buf(0, output_buf)
 
 	local function append(buf, data)
-		if not data then
+		if not data or not output_buf then
 			return
 		end
 		-- skip empty lines to avoid buffer clutter
@@ -94,12 +94,25 @@ function M.run(opts)
 			append(output_buf, data)
 		end,
 		on_exit = function(_, code)
-			vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, { string.format("[Process exited %d]", code) })
+			if output_buf then
+				vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, { string.format("[Process exited %d]", code) })
+			end
 		end,
 	})
 	if job_id <= 0 then
 		print("Failed to start command: " .. cmd)
+		return
 	end
+
+	-- Stop the job when the output buffer is deleted
+	vim.api.nvim_create_autocmd("BufWinLeave", {
+		buffer = output_buf,
+		callback = function()
+			vim.fn.jobstop(job_id)
+			output_buf = nil -- prevent appending to a deleted buffer
+		end,
+		once = true,
+	})
 end
 
 return M
