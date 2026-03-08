@@ -1,0 +1,45 @@
+Exec.nvim
+=========
+
+* Introduction
+Execute commands from neovim asynchronously, in or out of a tmux session.
+
+* Installation
+** vim-plug:
+  Plug 'r2adio/exec.nvim'
+** packer:
+  use 'r2adio/exec.nvim'
+** mini.deps:
+	add({ source = "r2adio/exec.nvim" })
+** lazy.nvim:
+  { 'r2adio/exec.nvim', lazy = true }
+
+* Setup
+```lua
+require('exec').setup()
+```
+
+* Usage
+** Commands
+   - `:X <cmd>` - Execute command asynchronously in a split buffer
+   - `:X! <cmd>` - Execute command in a new tmux window (if tmux is running) or terminal
+
+** Examples
+   - `:X make` - Run make in a split buffer
+   - `:X! npm run dev` - Run in a new tmux window/terminal
+   - `:X python script.py` - Run Python script
+
+* Features
+   - [✓] Asynchronous command execution in a split buffer
+   - [✓] Tmux support (run commands in a new tmux window)
+   - [◐] Input sanitization to prevent destructive commands
+   - [✓] Auto-cleanup: stops job when output buffer is closed
+   - [✗] Make targets suggestions
+   - [✗] Configurable split height (e.g., `split_height = 10`)
+   - [✗] Tmux pane support (`-pane` flag)
+   - [✗] Terminal tab support (`-tab` flag)
+   - [✗] Shell alias/function support in commands
+   - [✗] Command suggestions/completions after `:X`
+
+* Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
