@@ -39,7 +39,7 @@ require('exec').setup()
    - [✗] Tmux pane support (`-pane` flag)
    - [✗] Terminal tab support (`-tab` flag)
    - [✗] Shell alias/function support in commands
-   - [✗] Command suggestions/completions after `:X`
+   - [✓] Command suggestions/completions after `:X`
 
 * Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
