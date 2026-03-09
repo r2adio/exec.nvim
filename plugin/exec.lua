@@ -8,7 +8,6 @@ vim.api.nvim_create_user_command("X", function(opts)
 end, {
 	nargs = "*",
 	bang = true,
-	-- complete = "shellcmd",
 	complete = function()
 		local completions = {}
 		local path = vim.env.PATH or ""
@@ -24,6 +23,19 @@ end, {
 				end
 				handle:close()
 			end
+		end
+
+		local makefile = io.open("Makefile", "r")
+		if makefile then
+			for line in makefile:lines() do
+				local make_target = line:match("^([%w_-]+):")
+				if make_target and make_target ~= ".PHONY" and make_target ~= ".DEFAULT" then
+					table.insert(completions, make_target)
+				end
+			end
+			makefile:close()
+		else
+			print("No Makefile found in current directory, skipping Makefile targets in completions.")
 		end
 		return completions
 	end,

@@ -34,7 +34,7 @@ require('exec').setup()
    - [✓] Tmux support (run commands in a new tmux window)
    - [◐] Input sanitization to prevent destructive commands
    - [✓] Auto-cleanup: stops job when output buffer is closed
-   - [✗] Make targets suggestions
+   - [✓] Make targets suggestions
    - [✗] Configurable split height (e.g., `split_height = 10`)
    - [✗] Tmux pane support (`-pane` flag)
    - [✗] Terminal tab support (`-tab` flag)
