@@ -34,8 +34,6 @@ end, {
 				end
 			end
 			makefile:close()
-		else
-			print("No Makefile found in current directory, skipping Makefile targets in completions.")
 		end
 		return completions
 	end,

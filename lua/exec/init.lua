@@ -19,6 +19,15 @@ local function sanitize_input(opts)
 			return nil, "Dangerous pattern blocked: " .. check.desc .. " (found " .. input:match(check.pattern) .. ")"
 		end
 	end
+
+	-- check for Makefile before running make targets
+	if input:match("^make%s?[%w_-]*$") then
+		local makefile = io.open("Makefile", "r")
+		if not makefile then
+			return nil, "No Makefile found in current directory, can't run make targets."
+		end
+		makefile:close()
+	end
 	return input, nil
 end
 
@@ -26,11 +35,11 @@ end
 function M.run(opts)
 	local cmd, err = sanitize_input(opts)
 	if err then
-		print(err)
+		vim.api.nvim_echo({ { "Error: " .. err, "ErrorMsg" } }, false, {})
 		return
 	end
 	if cmd == "" then
-		print("Nothing to execute.")
+		vim.api.nvim_echo({ { "Error: No command provided", "ErrorMsg" } }, false, {})
 		return
 	end
 
@@ -38,7 +47,7 @@ function M.run(opts)
 		if vim.env.TMUX then
 			local message = [[; ec=$?; printf "\n[Process exited: %d]\n" "$ec"; read -r]]
 			if not cmd or cmd == "" then -- shouldnt happen due to earlier checks, but just in case
-				print("No command provided to execute in tmux")
+				vim.api.nvim_echo({ { "Error: No command provided", "ErrorMsg" } }, false, {})
 				return
 			end
 			local program_name = cmd:match("^%s*(%S+)") -- ignore leading whitespace
