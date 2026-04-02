@@ -61,6 +61,7 @@ function M.run(opts)
 				cmd .. message,
 			})
 		else
+			vim.cmd("tabnew")
 			vim.fn.jobstart(cmd, { term = true })
 			vim.cmd("startinsert")
 		end
@@ -74,6 +75,8 @@ function M.run(opts)
 
 	vim.cmd("belowright 10split")
 	vim.api.nvim_win_set_buf(0, output_buf)
+	-- nvim's terminal can accept a buffer and parse buffer content through virtual terminal state machine, and renders it.
+	-- vim.api.nvim_open_term(output_buf, {}) -- :call nvim_open_term(0,#{})
 
 	local function append(buf, data)
 		if not data or not output_buf then
