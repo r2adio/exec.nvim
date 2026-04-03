@@ -75,24 +75,19 @@ function M.run(opts)
 
 	vim.cmd("belowright 10split")
 	vim.api.nvim_win_set_buf(0, output_buf)
-	-- nvim's terminal can accept a buffer and parse buffer content through virtual terminal state machine, and renders it.
-	-- vim.api.nvim_open_term(output_buf, {}) -- :call nvim_open_term(0,#{})
+
+	-- use nvim's terminal to accept a buffer and parse buffer content (ansi codes) through
+	-- virtual terminal state machine, which renders them.
+	local term_chan = vim.api.nvim_open_term(output_buf, {})
 
 	local function append(buf, data)
-		if not data or not output_buf then
+		if not data or not output_buf or not term_chan then
 			return
 		end
-		-- skip empty lines to avoid buffer clutter
-		local filtered = {}
-		for _, line in ipairs(data) do
-			if line ~= "" then
-				table.insert(filtered, line)
-			end
-		end
-		if #filtered > 0 then
-			vim.api.nvim_buf_set_lines(buf, -1, -1, false, filtered)
-			-- scroll to bottom
-			vim.api.nvim_win_set_cursor(0, { vim.api.nvim_buf_line_count(buf), 0 })
+		-- merge data lines, and send to terminal channel for ansi parsing
+		local text = table.concat(data, "\n")
+		if text ~= "" then
+			vim.api.nvim_chan_send(term_chan, text)
 		end
 	end
 
@@ -106,8 +101,8 @@ function M.run(opts)
 			append(output_buf, data)
 		end,
 		on_exit = function(_, code)
-			if output_buf then
-				vim.api.nvim_buf_set_lines(output_buf, -1, -1, false, { string.format("[Process exited %d]", code) })
+			if output_buf and term_chan then
+				vim.api.nvim_chan_send(term_chan, string.format("\n[Process exited %d]\n", code))
 			end
 		end,
 	})
@@ -116,12 +111,16 @@ function M.run(opts)
 		return
 	end
 
-	-- Stop the job when the output buffer is deleted
+	-- stops the job and close terminal channel when the output buffer is deleted
 	vim.api.nvim_create_autocmd("BufWinLeave", {
 		buffer = output_buf,
 		callback = function()
 			vim.fn.jobstop(job_id)
+			if term_chan then
+				vim.fn.chanclose(term_chan)
+			end
 			output_buf = nil -- prevent appending to a deleted buffer
+			term_chan = nil
 		end,
 		once = true,
 	})
