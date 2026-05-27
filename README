@@ -35,7 +35,7 @@ require('exec').setup()
    - [◐] Input sanitization to prevent destructive commands
    - [✓] Auto-cleanup: stops job when output buffer is closed
    - [✓] Make targets suggestions
-   - [✗] Configurable split height (e.g., `split_height = 10`)
+   - [✓] Configurable split height (e.g., `split_height = 10`)
    - [✗] Tmux pane support (`-pane` flag)
    - [✗] Terminal tab support (`-tab` flag)
    - [✗] Shell alias/function support in commands

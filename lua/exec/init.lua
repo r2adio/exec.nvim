@@ -1,6 +1,8 @@
 local M = {}
 
-M.config = {}
+M.config = {
+	split_height = 10,
+}
 
 function M.setup(opts)
 	M.config = vim.tbl_deep_extend("force", M.config, opts or {})
@@ -73,7 +75,7 @@ function M.run(opts)
 	vim.api.nvim_set_option_value("bufhidden", "wipe", { scope = "local", buf = output_buf })
 	vim.api.nvim_set_option_value("swapfile", false, { scope = "local", buf = output_buf })
 
-	vim.cmd("belowright 10split")
+	vim.cmd(string.format("belowright %dsplit", M.config.split_height))
 	vim.api.nvim_win_set_buf(0, output_buf)
 
 	-- use nvim's terminal to accept a buffer and parse buffer content (ansi codes) through
