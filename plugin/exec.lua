@@ -28,7 +28,8 @@ end, {
 		local makefile = io.open("Makefile", "r")
 		if makefile then
 			for line in makefile:lines() do
-				local make_target = line:match("^([%w_-]+):")
+				-- Ignore variables, handle actual targets more safely
+				local make_target = line:match("^([%a%d_.-]+):")
 				if make_target and make_target ~= ".PHONY" and make_target ~= ".DEFAULT" then
 					table.insert(completions, make_target)
 				end
