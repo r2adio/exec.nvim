@@ -1,3 +1,6 @@
+NOTE: this plugin is no longer actively developed, eventually discovered neovim's native solutions for the 
+      problem this plugin solves. I dont intend to resume the development of this plugin.
+
 Exec.nvim
 =========
 
